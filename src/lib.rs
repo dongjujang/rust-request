@@ -14,6 +14,10 @@ use url::{Protocol, Url};
 use response::Response;
 use openssl::ssl::{SslStream, SslContext};
 use openssl::ssl::SslMethod::Sslv23;
+#[cfg(test)]
+mod test;
+#[cfg(test)]
+use std::thread;
 
 pub fn post(url: &str,
             headers: &mut HashMap<String, String>,
@@ -21,7 +25,7 @@ pub fn post(url: &str,
     return connect("POST", &try!(Url::new(url)), headers, body);
 }
 
-pub fn get(url: &str,
+pub fn get( url: &str,
            headers: &mut HashMap<String, String>) -> Result<Response> {
     return connect("GET", &try!(Url::new(url)), headers, "".as_bytes());
 }
@@ -216,5 +220,71 @@ fn get_response(raw: &str) -> Result<Response> {
 }
 
 #[test]
-fn it_works() {
+#[cfg(test)]
+fn test_requests() {
+    thread::spawn(move || {
+        test::new(); 
+    });
+    let mut headers: HashMap<String, String> = HashMap::new();
+    headers.insert("Accept".to_string(), "text/html".to_string());
+    headers.insert("Connection".to_string(), "close".to_string());
+    let url = "http://localhost:8888";
+    let response_get = match get( &url, &mut headers) {
+        Ok(response_get) => response_get,
+        Err(e) => { panic!("{}", e); }  
+    };
+    match response_get.status_code {
+        200 => {}
+        _ => { assert!(false); return; }
+    }
+
+
+    let response_post = match post(&url, &mut headers, "test for POST\n\n".as_bytes()) {
+        Ok(response_post) => response_post,
+        Err(e) => { panic!("{}", e); }
+    };
+    match response_post.status_code {
+        200 => {}
+        _ => { assert!(false); return; }
+    }
+
+
+    let response_put = match put(&url, &mut headers, "test for PUT\n\n".as_bytes()) {
+        Ok(response_put) => response_put,
+        Err(e) => { panic!("{}", e); }
+    };
+    match response_put.status_code {
+        200 => {}
+        _ => { assert!(false); return; }
+    }
+
+
+    let response_delete = match delete(&url, &mut headers) {
+        Ok(response_delete) => response_delete,
+        Err(e) => { panic!("{}", e); }
+    };
+    match response_delete.status_code {
+        200 => {}
+        _ => { assert!(false); return; }
+    }
+
+
+    let response_options = match options(&url, &mut headers) {
+        Ok(response_options) => response_options,
+        Err(e) => { panic!("{}", e); }
+    };
+    match response_options.status_code {
+        200 => {}
+        _ => { assert!(false); return; }
+    }
+
+
+    let response_head = match head(&url, &mut headers) {
+        Ok(response_head) => response_head,
+        Err(e) => { panic!("{}", e); }
+    };
+    match response_head.status_code {
+        200 => {}
+        _ => { assert!(false); return; }
+    } 
 }
