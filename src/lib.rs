@@ -25,7 +25,7 @@ pub fn post(url: &str,
     return connect("POST", &try!(Url::new(url)), headers, body);
 }
 
-pub fn get( url: &str,
+pub fn get(url: &str,
            headers: &mut HashMap<String, String>) -> Result<Response> {
     return connect("GET", &try!(Url::new(url)), headers, "".as_bytes());
 }
